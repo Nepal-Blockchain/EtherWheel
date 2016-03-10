@@ -1,4 +1,4 @@
-contract Spinner {
+contract EtherWheel {
     address public host;
     uint public goal;
     uint public increment;
@@ -17,7 +17,7 @@ contract Spinner {
     event Won(address winner, uint timestamp, uint stake);
     event ChangedStake(address stakeholder);
 
-    function Spinner(uint _goalInFinney, uint _incrementInFinney, uint8 _recentWinsCount) {
+    function EtherWheel(uint _goalInFinney, uint _incrementInFinney, uint8 _recentWinsCount) {
         if(_goalInFinney % _incrementInFinney != 0) throw;
 
         host = msg.sender;
@@ -73,9 +73,14 @@ contract Spinner {
     function refundStake() {
         if(stakes[msg.sender] == 0 || msg.value > 0) throw;
 
+        // Cut the stakeholder from the array, and shift the others over.
         for(uint i = 0; i < stakeholders.length; ++i) {
             if(stakeholders[i] == msg.sender) {
-                delete stakeholders[i];
+                for(uint j = i; j < stakeholders.length - 1; ++j) {
+                    stakeholders[j] = stakeholders[j + 1];
+                }
+
+                stakeholders.length--;
                 break;
             }
         }
@@ -83,6 +88,10 @@ contract Spinner {
         msg.sender.send(stakes[msg.sender]);
         stakes[msg.sender] = 0;
         ChangedStake(msg.sender);
+    }
+
+    function numStakeholders() constant returns (uint) {
+        return stakeholders.length;
     }
 
     /* This should only be needed if a bug is discovered

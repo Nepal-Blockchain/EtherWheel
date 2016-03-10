@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  angular.module('etherSpinner', [
+  angular.module('ether-spinner', [
     'ngRoute',
     'chart.js'
   ]).

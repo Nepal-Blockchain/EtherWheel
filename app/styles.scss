@@ -4,3 +4,38 @@ body {
   color: #3D3E3F;
   font-family: 'Source Sans Pro', sans-serif;
 }
+
+.jumbotron {
+  background: none;
+  margin-bottom: 0;
+}
+
+.btn {
+  font-weight: bolder;
+}
+
+.wheel {
+  position: relative;
+
+  .wheel-text {
+    font-size: 5em;
+    text-align: center;
+    line-height: 1.5em;
+
+    display: table;
+    width: 100%;
+    margin: auto;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+
+    .current-ether {
+      font-size: 2em;
+      font-weight: bold;
+      display: block;
+    }
+  }
+}
