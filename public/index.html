@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ether Spinner</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <base href="/">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/styles.min.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
+  </head>
+
+  <body ng-app="etherSpinner">
+    <div class="container">
+      <div class="jumbotron">
+        <h1>ether spinner</h1>
+        <p>
+          Put ether in the wheel for a chance to win it all.
+        </p>
+        <p>
+          Once the wheel is full, the full <strong>5.0 eth</strong> will be awarded to a winner.
+        </p>
+      </div>
+      <div ng-controller="SpinnerCtrl as vm">
+        Connected to ethereum: {{ vm.provider.isConnected() }}
+        <canvas
+          id="doughnut"
+          class="chart chart-doughnut"
+          chart-data="data"
+          chart-labels="labels"
+        >
+        </canvas>
+      </div>
+    </div>
+
+    <script src="/vendor.min.js"></script>
+    <script src="/app.min.js"></script>
+  </body>
+</html>
