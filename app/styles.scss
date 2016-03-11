@@ -54,7 +54,7 @@ strong {
     padding: 0;
 
     @media only screen and (min-width : 992px) {
-      max-height: 250px;
+      max-height: 225px;
       overflow-y: scroll;
     }
 
@@ -100,14 +100,24 @@ strong {
   }
 }
 
-rzslider .rz-pointer {
-  top: -6px;
-  width: 16px;
-  height: 16px;
-  background-color: $dark-color;
+rzslider {
+ .rz-pointer {
+    top: -6px;
+    width: 16px;
+    height: 16px;
+    background-color: $dark-color;
 
-  &:focus {
-    outline: none;
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .rz-bubble {
+    bottom: 14px;
+
+    &:not(.rz-limit) {
+      font-weight: bold;
+    }
   }
 }
 

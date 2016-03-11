@@ -46,6 +46,7 @@
       initializeStakeholdersData();
       updateStakes();
       updateBalance();
+      vm.newBalance = vm.balance - vm.desiredStakes;
       updateRecentResults();
 
       var onStakeChangedEvent = contract.ChangedStake();
@@ -66,9 +67,11 @@
         percentageInnerCutout: 75,
         responsive: true,
         tooltipTemplate: function(valueObject) {
-          var tooltip = valueObject.label + ": " + valueObject.value + " Ξ";
+          var name = (valueObject.label === vm.selectedAccount) ? 'You' : valueObject.label;
+          var tooltip = name + ': ' + valueObject.value + ' Ξ';
           if(!!vm.goal) {
-            tooltip += " (" + (valueObject.value / vm.goal * 100) + "%)";
+            var percentage = (valueObject.value / vm.goal * 100);
+            tooltip += ' (' + Math.round(percentage * 100) / 100 + '%)'
           }
           return tooltip;
         }
@@ -83,14 +86,16 @@
 
       var wei = ethereum.web3.eth.getBalance(contractAddress);
       var ether = ethereum.web3.fromWei(wei, 'ether');
+      var deltaStakes = (vm.desiredStakes - vm.currentStakes);
       vm.balance = parseFloat(ether.toString());
-      chart.segments[chart.segments.length - 1].value = (vm.goal - vm.balance);
+      vm.newBalance = vm.balance + deltaStakes;
+      chart.segments[chart.segments.length - 1].value = (vm.goal - vm.newBalance);
       chart.update();
     }
 
     function updateStakes() {
       if(!ethereum.isConnected()) { return; }
-      vm.currentStakes = ethereum.web3.fromWei(contract.stakes(vm.selectedAccount), 'ether').toString();
+      vm.currentStakes = parseFloat(ethereum.web3.fromWei(contract.stakes(vm.selectedAccount), 'ether').toString());
       vm.desiredStakes = vm.currentStakes;
     }
 
@@ -105,7 +110,7 @@
         stakeholdersData[stakeholderAddress] = {
           label: stakeholderAddress,
           value: ethereum.web3.fromWei(contract.stakes(stakeholderAddress), 'ether'),
-          color: (stakeholderAddress === vm.selectedAccount) ? '#C99D66' : '#3D3E3F',
+          color: (stakeholderAddress === vm.selectedAccount) ? '#5cb85c' : '#3D3E3F',
           index: i
         };
 
@@ -129,14 +134,15 @@
         if(stakeholderAddress in stakeholdersData) {
           chart.segments[stakeholdersData[stakeholderAddress].index].value = value;
         } else {
-          var index = Object.keys(stakeholdersData).lengthupd;
+          var index = Object.keys(stakeholdersData).length;
           stakeholdersData[stakeholderAddress] = {
             label: stakeholderAddress,
             value: value,
-            color: (stakeholderAddress === vm.selectedAccount) ? '#C99D66' : '#3D3E3F',
+            color: (stakeholderAddress === vm.selectedAccount) ? '#5cb85c' : '#3D3E3F',
             index: index
           };
           chart.addData(stakeholdersData[stakeholderAddress], index);
+          console.log(index);
         }
 
         chart.update();
@@ -156,7 +162,7 @@
 
     function onSliderChanged(sliderId, modelValue) {
       chart.segments[stakeholdersData[vm.selectedAccount.toString()].index].value = modelValue;
-      chart.update();
+      updateBalance();
     }
 
     function reloadPage() {

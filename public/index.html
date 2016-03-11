@@ -18,11 +18,11 @@
       <div class="jumbotron">
         <h1>
           <img src="./assets/ethereumLogo.png" class="ethereum-logo">
-          ether wheel<span style="color: #C99D66;">.io</span>
+          ether wheel<span style="color: #5cb85c;">.io</span>
         </h1>
 
         <p>
-          Each time the wheel is filled, all <strong>{{ 5 | currency:"":0 }} <small>Ξ</small></strong> will be awarded to a randomly-selected participant. The more ether you contribute, the higher your odds of being the winner. For example, contributing 0.5 ether would give you a 10% chance of winning it all.
+          Each time an Ether Wheel is filled, <span style="font-weight: bold;">all of the ether<small style="font-weight: normal;">*</small> in the wheel will be awarded to a randomly-selected participant</span>. The more ether you contribute, the higher your odds of being the winner. For example, contributing 0.2 ether to the 1-ether wheel would give you a 20% chance of winning it all.
         </p>
       </div>
 
@@ -30,10 +30,10 @@
         <div class="wheel-area col-md-6" style="position: ">
           <canvas id="wheel" height="260px"></canvas>
           <div class="wheel-text">
-            <span class="current-ether" ng-if="vm.isConnected()">{{ vm.balance | currency:"":2 }}</span>
+            <span class="current-ether" ng-if="vm.isConnected()">{{ vm.newBalance | currency:"":2 }}</span>
             <span class="current-ether" ng-if="!vm.isConnected()">?</span>
             of {{ vm.goal }} ether
-            <div class="percentage">({{ vm.balance / vm.goal * 100 | number }}% full)</div>
+            <div class="percentage">({{ vm.newBalance / vm.goal * 100 | number:0 }}% full)</div>
           </div>
         </div>
 
@@ -55,22 +55,26 @@
                   <div class="col-xs-7">
                     <rzslider
                       rz-slider-model="vm.desiredStakes"
-                      rz-slider-options="{ floor: 0, ceil: vm.goal - vm.balance, step: vm.sliderStep, precision: 2, onChange: vm.onSliderChanged }"
+                      rz-slider-options="{ floor: 0, ceil: (vm.goal - vm.balance + vm.currentStakes).toFixed(2), step: vm.sliderStep, precision: 2, onChange: vm.onSliderChanged }"
                     >
                     </rzslider>
                   </div>
 
-                  <div class="col-xs-5">
+                  <div class="col-xs-5" style="position: relative;">
                     <button
                       class="btn btn-success btn-set-stakes"
                       ng-disabled="vm.desiredStakes == vm.currentStakes"
                       >
-                        Set Contribution to {{ vm.desiredStakes }} Ξ
+                        Set Contribution to {{ vm.desiredStakes | number:2}} Ξ
                     </button>
                   </div>
 
-                  <p class="subtext pull-right" style="margin-top: 10px; margin-right: 15px; margin-bottom: 0;">
-                    This would give you a {{ vm.desiredStakes / vm.goal * 100 | number:0 }}% chance of winning all {{ vm.goal }} Ξ.
+                  <div class="text-danger" style="clear: both; text-align: center; padding-top: 10px; font-size: 0.9em;" ng-show="vm.newBalance == vm.goal">
+                    This will fill the wheel, causing a winner to be chosen for this round!<br>
+                  </div>
+
+                  <p class="subtext pull-right" style="margin-top: 10px; margin-right: 15px; margin-bottom: 0; text-align: right;">
+                    This would give you a {{ vm.desiredStakes / vm.goal * 100 | number:0 }}% chance of winning all {{ vm.goal }} Ξ*.
                   </p>
                 </div>
               </div>
@@ -102,7 +106,7 @@
           </div>
 
           <div class="panel panel-danger not-connected-error" ng-if="!vm.isConnected()">
-            <div class="panel-heading"><i class="fa fa-exclamation-circle"></i> NOT CONNECTED TO ETHEREUM</div>
+            <div class="panel-heading"><i class="fa fa-exclamation-circle"></i> ERROR: NOT CONNECTED TO ETHEREUM</div>
             <div class="panel-body">
               <p>
                 There was a problem connecting to the Ethereum network. Your Ethereum client needs to accept cross-origin requests from this domain by using the following command:
@@ -112,13 +116,20 @@
                 geth --rpc --rpccorsdomain "http://etherwheel.io"
               </code>
 
+              <p><br>
+                To put any ether into the wheel, you'll also need to access this page through the <a href="https://github.com/ethereum/mist/releases/tag/0.3.6">early developer release</a> of Mist, the official Ethereum browser.
+              </p>
+
               <div style="margin-top: 40px;">
-                <button class="btn btn-lg btn-info" ng-click="vm.reloadPage()">When you're ready, click here to try again</button>
+                When you're ready, just refresh the page to begin.
               </div>
             </div>
           </div>
         </div>
+        <span class="subtext pull-right" style="margin-right: 30px">*1% of the total winnings are credited to the developer.</span>
+
       </div>
+
     </div>
 
     <div class="info-boxes">
