@@ -8,7 +8,7 @@
     var vm = this;
     vm.isConnected = ethereum.isConnected;
 
-    var emptyBarColour = '#dae4e7';
+    var emptyBarColour = '#dce6e9';
     var contractAddress = '0xaCD9e1e68622285Cc3d339D04b76BA7acEE6FC1C';
     var contract = null;
 
@@ -45,8 +45,10 @@
 
       initializeStakeholdersData();
       updateStakes();
+      vm.desiredStakes = vm.currentStakes;
+
       updateBalance();
-      vm.newBalance = vm.balance - vm.desiredStakes;
+      updateNewBalance();
       updateRecentResults();
 
       var onStakeChangedEvent = contract.ChangedStake();
@@ -68,7 +70,7 @@
         responsive: true,
         tooltipTemplate: function(valueObject) {
           var name = (valueObject.label === vm.selectedAccount) ? 'You' : valueObject.label;
-          var tooltip = name + ': ' + valueObject.value + ' Ξ';
+          var tooltip = name + ': ' + valueObject.value.toFixed(2) + ' Ξ';
           if(!!vm.goal) {
             var percentage = (valueObject.value / vm.goal * 100);
             tooltip += ' (' + Math.round(percentage * 100) / 100 + '%)'
@@ -86,8 +88,11 @@
 
       var wei = ethereum.web3.eth.getBalance(contractAddress);
       var ether = ethereum.web3.fromWei(wei, 'ether');
-      var deltaStakes = (vm.desiredStakes - vm.currentStakes);
       vm.balance = parseFloat(ether.toString());
+    }
+
+    function updateNewBalance() {
+      var deltaStakes = (vm.desiredStakes - vm.currentStakes);
       vm.newBalance = vm.balance + deltaStakes;
       chart.segments[chart.segments.length - 1].value = (vm.goal - vm.newBalance);
       chart.update();
@@ -95,8 +100,11 @@
 
     function updateStakes() {
       if(!ethereum.isConnected()) { return; }
+
+      updateBalance();
       vm.currentStakes = parseFloat(ethereum.web3.fromWei(contract.stakes(vm.selectedAccount), 'ether').toString());
-      vm.desiredStakes = vm.currentStakes;
+      vm.desiredStakes = Math.min(vm.desiredStakes, vm.goal - vm.balance + vm.currentStakes);
+      updateNewBalance();
     }
 
     function initializeStakeholdersData() {
@@ -162,7 +170,7 @@
 
     function onSliderChanged(sliderId, modelValue) {
       chart.segments[stakeholdersData[vm.selectedAccount.toString()].index].value = modelValue;
-      updateBalance();
+      updateNewBalance();
     }
 
     function reloadPage() {

@@ -2,20 +2,20 @@ contract EtherWheel {
     address public host;
     uint public goal;
     uint public increment;
-    mapping(address => uint) public stakes;
-    address[] public stakeholders;
+    mapping(address => uint) public contributions;
+    address[] public contributors;
 
     struct Win {
         address winner;
         uint timestamp;
-        uint stake;
+        uint contribution;
     }
 
     Win[] public recentWins;
     uint recentWinsCount;
 
-    event Won(address winner, uint timestamp, uint stake);
-    event ChangedStake(address stakeholder);
+    event Won(address winner, uint timestamp, uint contribution);
+    event ChangedContribution(address contributor);
 
     function EtherWheel(uint _goalInFinney, uint _incrementInFinney, uint8 _recentWinsCount) {
         if(_goalInFinney % _incrementInFinney != 0) throw;
@@ -26,37 +26,37 @@ contract EtherWheel {
         recentWinsCount = _recentWinsCount;
     }
 
-    function() {
-        buyStake(true);
+    function numContributors() constant returns (uint) {
+        return contributors.length;
     }
 
-    function buyStake(bool rejectPartialBets) {
+    function numWinners() constant returns (uint) {
+        return recentWins.length;
+    }
+
+    function() {
+        addToContribution();
+    }
+
+    function addToContribution() {
         // First, make sure this is a valid transaction.
-        // Otherwise the account needs to be refunded.
+        // It needs to be a valid increment and must not overshoot the goal.
         if(msg.value == 0 || msg.value % increment != 0) throw;
-        if(rejectPartialBets && (this.balance > goal)) throw;
+        if(this.balance > goal) throw;
 
-        if(stakes[msg.sender] == 0) {
-            // This account doesn't already own any stake.
-            stakeholders.push(msg.sender);
+        if(contributions[msg.sender] == 0) {
+            // This account hasn't contributed any ether yet.
+            contributors.push(msg.sender);
         }
 
-        uint stake = msg.value;
-        if(this.balance > goal) {
-            // We were paid too much and the goal was overshot.
-            // Send the remainder back to the account.
-            uint refund = goal - this.balance;
-            stake = msg.value - refund;
-            msg.sender.send(refund);
-        }
-        stakes[msg.sender] += stake;
-        ChangedStake(msg.sender);
+        contributions[msg.sender] += msg.value;
+        ChangedContribution(msg.sender);
 
         if(this.balance == goal) {
-            // Woohoo, the spinner has been filled! Choose a winner.
+            // Woohoo, the wheel has been filled! Choose a winner.
             address winner = selectWinner();
 
-            // Send the developer a 1% coffee tip. wink emoticon
+            // Send the developer a 1% coffee tip. ;)
             host.send(this.balance / 100);
 
             // Send the winner the remaining balance on the contract.
@@ -64,59 +64,47 @@ contract EtherWheel {
 
             // Make a note that someone won, then start all over!
             recordWin(winner);
-            Won(winner, block.timestamp, stakes[winner]);
+            Won(winner, block.timestamp, contributions[winner]);
             reset();
         }
     }
 
     /* Refunds are allowed at any time before a winner is chosen. */
-    function refundStake() {
-        if(stakes[msg.sender] == 0 || msg.value > 0) throw;
+    function removeFromContribution(uint amount) {
+        if(amount == 0 || msg.value > 0 || amount > contributions[msg.sender]) throw;
 
-        // Cut the stakeholder from the array, and shift the others over.
-        for(uint i = 0; i < stakeholders.length; ++i) {
-            if(stakeholders[i] == msg.sender) {
-                for(uint j = i; j < stakeholders.length - 1; ++j) {
-                    stakeholders[j] = stakeholders[j + 1];
+        msg.sender.send(amount);
+        contributions[msg.sender] -= amount;
+
+        if(contributions[msg.sender] == 0)
+        {
+            // Cut the contributor from the array, and shift the others over.
+            for(uint i = 0; i < contributors.length; ++i) {
+                if(contributors[i] == msg.sender) {
+                    for(uint j = i; j < contributors.length - 1; ++j) {
+                        contributors[j] = contributors[j + 1];
+                    }
+
+                    contributors.length--;
+                    break;
                 }
-
-                stakeholders.length--;
-                break;
             }
         }
 
-        msg.sender.send(stakes[msg.sender]);
-        stakes[msg.sender] = 0;
-        ChangedStake(msg.sender);
-    }
-
-    function numStakeholders() constant returns (uint) {
-        return stakeholders.length;
-    }
-
-    /* This should only be needed if a bug is discovered
-    in the code and the contract must be destroyed. */
-    function destroy() {
-        if(msg.sender != host) throw;
-
-        for(uint i = 0; i < stakeholders.length; ++i) {
-            stakeholders[i].send(stakes[stakeholders[i]]);
-        }
-
-        selfdestruct(host);
+        ChangedContribution(msg.sender);
     }
 
     function selectWinner() internal returns (address winner) {
         /* Note that the block hash of the last block is used to determine
         a pseudo-random winner. Since this could possibly be manipulated
-        by miners, spinner goals should remain at 5 ether or less to
-        eliminate the incentive to cheat, since therwise cheating the system
-        would result in a net loss for the cheating miner. */
+        by miners, wheel goals should remain at 5 ether or less for security.
+        There is no incentive to cheat a wheel with less than 5 ether, since
+        that would result in a net loss for the cheating miner. */
 
         uint semirandom = uint(block.blockhash(block.number - 1)) % this.balance;
-        for(uint i = 0; i < stakeholders.length; ++i) {
-            if(semirandom < stakes[stakeholders[i]]) return stakeholders[i];
-            semirandom -= stakes[stakeholders[i]];
+        for(uint i = 0; i < contributors.length; ++i) {
+            if(semirandom < contributions[contributors[i]]) return contributors[i];
+            semirandom -= contributions[contributors[i]];
         }
     }
 
@@ -131,15 +119,33 @@ contract EtherWheel {
             }
         }
 
-        recentWins[recentWins.length - 1] = Win(winner, block.timestamp, stakes[winner]);
+        recentWins[recentWins.length - 1] = Win(winner, block.timestamp, contributions[winner]);
     }
 
     function reset() internal {
-        // Return the stakeholders' funds, since this spinner is ending early.
-        for(uint i = 0; i < stakeholders.length; ++i) {
-            delete stakes[stakeholders[i]];
+        // Return the contributors' funds, since this wheel is ending early.
+        for(uint i = 0; i < contributors.length; ++i) {
+            delete contributions[contributors[i]];
         }
 
-        delete stakeholders;
+        delete contributors;
+    }
+
+    function changeHost(address newHost) {
+        if(msg.sender != host) throw;
+        host = newHost;
+    }
+
+    /* This should only be needed if a bug is discovered
+    in the code and the contract must be destroyed. */
+    function destroy() {
+        if(msg.sender != host) throw;
+
+        // Refund everyone's contributions.
+        for(uint i = 0; i < contributors.length; ++i) {
+            contributors[i].send(contributions[contributors[i]]);
+        }
+
+        selfdestruct(host);
     }
 }
