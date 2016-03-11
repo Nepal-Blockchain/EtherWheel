@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Ether Spinner</title>
+    <title>Ether Wheel</title>
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
     <base href="/">
 
@@ -14,32 +14,78 @@
   </head>
 
   <body ng-app="ether-spinner">
-    <div class="container">
+    <div class="container" style="height: 100%;">
       <div class="jumbotron">
-        <h1>ethereum wheel</h1>
+        <h1>
+          <img src="./assets/ethereumLogo.png" class="ethereum-logo">
+          ether wheel<span style="color:#C99D66;">.io</span>
+        </h1>
         <p>
-          Each time the wheel is filled, all <strong>{{ 5 | currency:"":0 }} eth</strong> will be awarded to a winner. The more ether you put into the wheel, the higher your odds of being the winner.
+          Each time the wheel is filled, all <strong>{{ 5 | currency:"":0 }} eth</strong> will be awarded to a randomly-selected participant. The more ether you contribute, the higher your odds of being the winner. For example, contributing 0.5 ether would give you a 10% chance of winning it all.
         </p>
       </div>
 
       <div ng-controller="SpinnerCtrl as vm" class="row">
         <div class="wheel col-md-7">
           <canvas
-            height="250"
+            height="200"
             class="chart chart-doughnut"
-            chart-data="data"
-            chart-labels="labels"
-            chart-options="{ animationEasing: 'easeInOut', animationSteps: 50, segmentStrokeColor: '#EBF0F1', percentageInnerCutout: 78 }"
+            chart-data="vm.wheelData"
+            chart-labels="vm.wheelLabels"
+            chart-colours="vm.wheelColours"
+            chart-options="{ animationEasing: 'easeInOut', segmentStrokeWidth: 3, animationSteps: 50, segmentStrokeColor: '#EBF0F1', percentageInnerCutout: 82 }"
           >
           </canvas>
           <div class="wheel-text">
             <span class="current-ether" ng-if="vm.isConnected()">{{ vm.balance | currency:"":2 }}</span>
             <span class="current-ether" ng-if="!vm.isConnected()">?</span>
-            of 5 eth
+            of {{ vm.goal }} eth
+            <div class="percentage">({{ vm.balance / vm.goal | number:1 }}% full)</div>
           </div>
         </div>
 
-        <div class="col-md-5">
+        <div class="row col-md-5">
+          <div class="col-xlg-6">
+            <div class="panel panel-default" ng-if="vm.isConnected()">
+              <div class="panel-heading">
+                Your Contribution
+                <select class="form-control pull-right" style="height: auto; width: auto;" ng-model="vm.selectedAccount">
+                  <option ng-repeat="account in vm.accounts" value="{{ account }}">
+                    {{ account.toString() }}
+                  </option>
+                </select>
+              </div>
+              <div class="panel-body">
+                You currently have <strong>0 eth</strong> in the wheel.
+
+                <div class="row">
+                  <div class="col-sm-8">
+                    <rzslider
+                      rz-slider-model="vm.desiredStakes"
+                      rz-slider-options="{ floor: 0, ceil: 5, step: vm.sliderStep, precision: 2 }"
+                    >
+                    </rzslider>
+                  </div>
+
+                  <div class="col-sm-4">
+                    <button class="btn btn-success btn-set-stakes">Set Contribution</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xlg-6">
+            <div class="panel panel-default" ng-if="vm.isConnected()">
+              <div class="panel-heading">
+                Recent Winners
+              </div>
+              <div class="panel-body">
+                This is where recent winners are listed.
+              </div>
+            </div>
+          </div>
+
           <div class="panel panel-danger" ng-if="!vm.isConnected()">
             <div class="panel-heading">NOT CONNECTED TO ETHEREUM</div>
             <div class="panel-body">
@@ -48,7 +94,7 @@
               </p>
 
               <code class="well-sm">
-                geth --rpc --rpccorsdomain "http://etherspinner.com"
+                geth --rpc --rpccorsdomain "http://etherwheel.io"
               </code>
 
               <div style="margin-top: 40px;">
@@ -59,6 +105,10 @@
         </div>
       </div>
     </div>
+
+    <footer>
+      Powered by <a href="http://www.ethereum.org">Ethereum</a>.
+    </footer>
 
     <script src="/vendor.min.js"></script>
     <script src="/app.min.js"></script>

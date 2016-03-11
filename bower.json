@@ -1,5 +1,5 @@
 {
-  "name": "ether-spinner",
+  "name": "ether-wheel",
   "description": "A simple Ethereum dapp that allows accounts to contribute ether to be redistributed using a weighted random selection.",
   "version": "0.0.0",
   "license": "MIT",
@@ -10,7 +10,8 @@
     "html5-boilerplate": "~5.2.0",
     "angular-bootstrap": "~1.2.4",
     "angular-chart.js": "~0.8.8",
-    "web3": "~0.15.3"
+    "web3": "~0.15.3",
+    "angularjs-slider": "~2.10.2"
   },
   "ignoredDependencies": [
     "angular"

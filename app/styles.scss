@@ -1,5 +1,8 @@
-body {
+html, body {
   height: 100%;
+}
+
+body {
   background-color: #EBF0F1;
   color: #3D3E3F;
   font-family: 'Source Sans Pro', sans-serif;
@@ -8,19 +11,36 @@ body {
 .jumbotron {
   background: none;
   margin-bottom: 0;
+  padding-top: 0px;
+  padding-bottom: 25px;
+}
+
+.ethereum-logo {
+  height: 45px;
+  width: auto;
+  vertical-align: baseline;
 }
 
 .btn {
   font-weight: bolder;
 }
 
+.btn-set-stakes {
+   width: 100%;
+   max-width: 300px;
+   height: 3em;
+   transform: translate(0, 25%);
+   display: table;
+   margin: auto;
+}
+
 .wheel {
   position: relative;
 
   .wheel-text {
-    font-size: 5em;
+    font-size: 3em;
     text-align: center;
-    line-height: 1.5em;
+    line-height: 1.6em;
 
     display: table;
     width: 100%;
@@ -33,9 +53,22 @@ body {
     right: 0;
 
     .current-ether {
-      font-size: 2em;
+      font-size: 2.5em;
       font-weight: bold;
       display: block;
     }
+
+    .percentage {
+      opacity: 0.3;
+      font-size: 0.6em;
+      line-height: 0.25em;
+    }
   }
+}
+
+footer {
+  background-color: #3D3E3F;
+  color: #EBF0F1;
+  min-height: 100px;
+  padding: 20px;
 }
