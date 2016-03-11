@@ -130,6 +130,10 @@ rzslider .rz-pointer:after {
   content: none;
 }
 
+.not-connected-error {
+  min-height: 300px;
+}
+
 footer {
   background-color: $dark-color;;
   color: $light-color;

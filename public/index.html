@@ -16,10 +16,17 @@
   <body ng-app="ether-spinner">
     <div class="container" style="height: 100%;">
       <div class="jumbotron">
-        <h1>
-          <img src="./assets/ethereumLogo.png" class="ethereum-logo">
-          ether wheel<span style="color:#C99D66;">.io</span>
-        </h1>
+        <div class="row">
+          <h1 class="col-md-7">
+            <img src="./assets/ethereumLogo.png" class="ethereum-logo">
+            ether wheel<span style="color:#C99D66;">.io</span>
+          </h1>
+
+          <div class="col-md-5" style="vertical-align: bottom;">
+            adfdfdf
+          </div>
+        </div>
+
         <p>
           Each time the wheel is filled, all <strong>{{ 5 | currency:"":0 }} <small>Ξ</small></strong> will be awarded to a randomly-selected participant. The more ether you contribute, the higher your odds of being the winner. For example, contributing 0.5 ether would give you a 10% chance of winning it all.
         </p>
@@ -86,13 +93,13 @@
             </div>
           </div>
 
-          <div class="panel panel-danger" ng-if="!vm.isConnected()">
-            <div class="panel-heading">NOT CONNECTED TO ETHEREUM</div>
+          <div class="panel panel-danger not-connected-error" ng-if="!vm.isConnected()">
+            <div class="panel-heading"><i class="fa fa-exclamation-circle"></i> NOT CONNECTED TO ETHEREUM</div>
             <div class="panel-body">
               <p>
-                There was a problem connecting to the Ethereum network. You should access this page through the <a href="https://github.com/ethereum/mist/releases/tag/0.3.6">developer pre-release of Mist</a> or
+                There was a problem connecting to the Ethereum network. Your Ethereum client needs to accept cross-origin requests from this domain by using the following command:
               </p>
-
+              <br>
               <code class="well-sm">
                 geth --rpc --rpccorsdomain "http://etherwheel.io"
               </code>
@@ -147,7 +154,7 @@
         <div class="panel panel-default info-box">
           <header><i class="fa fa-life-ring"></i>How can I support this site?</header>
           <p>
-            If you're a developer, feel free to make suggestions or pull requests on GitHub to improve this dapp. If you just want to show your approval and support the Ethereum community, and a few finney to my Ethereum account: <code>0xEeD1614CDEfBBdAd2cC8Af7AF2fd4beB93F1cCAc</code>!
+            If you're a developer, feel free to make suggestions or pull requests on GitHub to improve this dapp. If you just want to show your approval and support the Ethereum community, why not a few finney to my Ethereum account? <i class="fa fa-smile-o"></i></i><br><code>0xEeD1614CDEfBBdAd2cC8Af7AF2fd4beB93F1cCAc</code>
           </p>
         </div>
       </div>
