@@ -1,10 +1,13 @@
+$dark-color: #3D3E3F;
+$light-color: #EBF0F1;
+
 html, body {
   height: 100%;
 }
 
 body {
-  background-color: #EBF0F1;
-  color: #3D3E3F;
+  background-color: $light-color;
+  color: $dark-color;
   font-family: 'Source Sans Pro', sans-serif;
 }
 
@@ -16,7 +19,7 @@ body {
 }
 
 .ethereum-logo {
-  height: 45px;
+  height: 35px;
   width: auto;
   vertical-align: baseline;
 }
@@ -32,6 +35,10 @@ body {
    transform: translate(0, 25%);
    display: table;
    margin: auto;
+}
+
+.recent-winners-box {
+  min-height: 250px;
 }
 
 .wheel {
@@ -66,9 +73,66 @@ body {
   }
 }
 
+rzslider .rz-pointer {
+  top: -6px;
+  width: 16px;
+  height: 16px;
+  background-color: $dark-color;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.info-boxes {
+  padding: 20px;
+
+  &:after {
+    clear: both;
+  }
+}
+
+.info-box {
+  margin: 18px 0px;
+  padding: 21px;
+  border-radius: 8px;
+
+  header {
+    font-size: 1.75em;
+    margin-bottom: 5px;
+    font-weight: bold;
+
+    .fa {
+      margin-right: 8px;
+    }
+  }
+}
+
+@media only screen and (min-width : 992px) {
+  .info-box {
+    max-width: 60%;
+    display: block;
+    clear: both;
+
+    &:nth-child(odd) {
+      float: left;
+      margin-left: 30px;
+    }
+
+    &:nth-child(even) {
+      float: right;
+      margin-right: 30px;
+    }
+  }
+}
+
+rzslider .rz-pointer:after {
+  content: none;
+}
+
 footer {
-  background-color: #3D3E3F;
-  color: #EBF0F1;
-  min-height: 100px;
+  background-color: $dark-color;;
+  color: $light-color;
+  min-height: 150px;
   padding: 20px;
 }

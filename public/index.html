@@ -21,7 +21,7 @@
           ether wheel<span style="color:#C99D66;">.io</span>
         </h1>
         <p>
-          Each time the wheel is filled, all <strong>{{ 5 | currency:"":0 }} eth</strong> will be awarded to a randomly-selected participant. The more ether you contribute, the higher your odds of being the winner. For example, contributing 0.5 ether would give you a 10% chance of winning it all.
+          Each time the wheel is filled, all <strong>{{ 5 | currency:"":0 }} <small>Ξ</small></strong> will be awarded to a randomly-selected participant. The more ether you contribute, the higher your odds of being the winner. For example, contributing 0.5 ether would give you a 10% chance of winning it all.
         </p>
       </div>
 
@@ -39,8 +39,8 @@
           <div class="wheel-text">
             <span class="current-ether" ng-if="vm.isConnected()">{{ vm.balance | currency:"":2 }}</span>
             <span class="current-ether" ng-if="!vm.isConnected()">?</span>
-            of {{ vm.goal }} eth
-            <div class="percentage">({{ vm.balance / vm.goal | number:1 }}% full)</div>
+            of {{ vm.goal }} ether
+            <div class="percentage">({{ vm.balance / vm.goal * 100 | number }}% full)</div>
           </div>
         </div>
 
@@ -56,13 +56,13 @@
                 </select>
               </div>
               <div class="panel-body">
-                You currently have <strong>0 eth</strong> in the wheel.
+                You currently have <strong>{{ vm.currentStakes }} eth</strong> in this wheel.
 
                 <div class="row">
                   <div class="col-sm-8">
                     <rzslider
                       rz-slider-model="vm.desiredStakes"
-                      rz-slider-options="{ floor: 0, ceil: 5, step: vm.sliderStep, precision: 2 }"
+                      rz-slider-options="{ floor: 0, ceil: vm.goal - vm.balance, step: vm.sliderStep, precision: 2, onChange: vm.onSliderChanged }"
                     >
                     </rzslider>
                   </div>
@@ -76,7 +76,7 @@
           </div>
 
           <div class="col-xlg-6">
-            <div class="panel panel-default" ng-if="vm.isConnected()">
+            <div class="panel panel-default recent-winners-box" ng-if="vm.isConnected()">
               <div class="panel-heading">
                 Recent Winners
               </div>
@@ -106,11 +106,58 @@
       </div>
     </div>
 
+    <div class="info-boxes">
+      <div class="container">
+        <div class="panel panel-default info-box">
+          <header><i class="fa fa-question-circle"></i>How do I use this application?</header>
+          <p>
+            Ether Wheel is a distributed application running on the <a href="http://www.ethereum.org">Ethereum network</a>. Each wheel has a designated capacity. Users can put as much ether as they want into the wheel. When the wheel is filled up, a winner is randomly selected, weighted by the amount of ether each participant contributed. All of the ether in the wheel is then sent to that account. In other words, the amount of ether that you put in is directly correlated with your chances of winning the entire pot.
+          </p>
+        </div>
+
+        <div class="panel panel-default info-box">
+          <header><i class="fa fa-lock"></i>How can I trust that this site works the way it claims?</header>
+          <p>
+            TODO
+          </p>
+        </div>
+
+        <div class="panel panel-default info-box">
+          <header><i class="fa fa-undo"></i>Can my ether be refunded?</header>
+          <p>
+            Yes! Before the wheel fills up and a winner is chosen, you can raise or lower your contribution at any time. However, once the wheel has been filled, the ether will be sent to the winner, and this cannot be undone.
+          </p>
+        </div>
+
+        <div class="panel panel-default info-box">
+          <header><i class="fa fa-user-secret"></i>Is it possible to cheat?</header>
+          </p>The short answer: no.</p>
+          <p>
+            The long answer: those of you who are cryptographically-savvy may notice that Ether Wheel uses a block hash as the seed to semi-randomly determine the winner. Mathematically-speaking, there does exist a slim chance for a miner using this dapp to abandon a block that does not declare them as the winner. However, since the reward for mining a block is 5 ether, and all ether wheels have a capacity of 5 ether or less, there is absolutely no incentive for a miner to attempt performing this cheat, since it would result in a net loss of ether for them.
+          </p>
+        </div>
+
+        <div class="panel panel-default info-box">
+          <header><i class="fa fa-bitcoin"></i>Do you profit from this?</header>
+          <p>
+            The Ether Wheel smart-contract does send me (the developer) 1% of the pool at the time that a winner is declared, in order to compensate for hosting/domain name fees, my development time, and a cup of coffee or two. <i class="fa fa-smile-o"></i> Other than that, etherwheel.io only benefits its users.
+          </p>
+        </div>
+
+        <div class="panel panel-default info-box">
+          <header><i class="fa fa-life-ring"></i>How can I support this site?</header>
+          <p>
+            If you're a developer, feel free to make suggestions or pull requests on GitHub to improve this dapp. If you just want to show your approval and support the Ethereum community, and a few finney to my Ethereum account: <code>0xEeD1614CDEfBBdAd2cC8Af7AF2fd4beB93F1cCAc</code>!
+          </p>
+        </div>
+      </div>
+    </div>
     <footer>
       Powered by <a href="http://www.ethereum.org">Ethereum</a>.
     </footer>
 
     <script src="/vendor.min.js"></script>
     <script src="/app.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
   </body>
 </html>

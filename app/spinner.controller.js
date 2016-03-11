@@ -29,6 +29,7 @@
 
       vm.goal = ethereum.web3.fromWei(contract.goal(), 'ether').toString();
       vm.sliderStep = ethereum.web3.fromWei(contract.increment(), 'ether').toString();
+      vm.onSliderChanged = onSliderChanged;
 
       vm.accounts = ethereum.web3.eth.accounts;
       vm.selectedAccount = ethereum.web3.eth.defaultAccount;
@@ -36,6 +37,7 @@
         vm.selectedAccount = ethereum.web3.eth.coinbase;
       }
 
+      updateStakes();
       updateBalance();
       updateChart();
       updateRecentResults();
@@ -55,9 +57,16 @@
       vm.balance = parseFloat(ether.toString());
     }
 
+    function updateStakes() {
+      if(!ethereum.isConnected()) { return; }
+      vm.currentStakes = ethereum.web3.fromWei(contract.stakes(vm.selectedAccount), 'ether').toString();
+      vm.desiredStakes = vm.currentStakes;
+    }
+
     function updateChart() {
       if(!ethereum.isConnected()) { return; }
 
+      vm.stakeIndices = {};
       vm.wheelLabels.length = 0;
       vm.wheelData.length = 0;
       vm.wheelColours.length = 0;
@@ -68,6 +77,7 @@
         vm.wheelLabels.push(stakeholder.toString());
         vm.wheelData.push(ethereum.web3.fromWei(contract.stakes(stakeholder), 'ether'));
         vm.wheelColours.push('#C99D66');
+        vm.stakeIndices[stakeholder.toString()] = i;
       }
 
       vm.wheelLabels.push('Empty');
@@ -81,15 +91,21 @@
 
     function onStakeChanged(error, result) {
       updateBalance();
+      updateStakes();
       updateChart();
       $scope.$apply();
     }
 
     function onWon(error, result) {
       updateBalance();
+      updateStakes();
       updateChart();
       updateRecentResults();
       $scope.$apply();
+    }
+
+    function onSliderChanged(sliderId, modelValue) {
+      vm.wheelData[vm.stakeIndices[vm.selectedAccount.toString()]] = modelValue;
     }
 
     function reloadPage() {
