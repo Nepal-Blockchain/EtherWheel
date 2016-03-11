@@ -9,9 +9,10 @@
     "angular-loader": "~1.4.0",
     "html5-boilerplate": "~5.2.0",
     "angular-bootstrap": "~1.2.4",
-    "angular-chart.js": "~0.8.8",
     "web3": "~0.15.3",
-    "angularjs-slider": "~2.10.2"
+    "angularjs-slider": "~2.10.2",
+    "Chart.js": "~1.0.2",
+    "moment": "~2.12.0"
   },
   "ignoredDependencies": [
     "angular"
