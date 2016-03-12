@@ -63,13 +63,14 @@
 
     function setContribution() {
       var deltaContribution = vm.desiredContribution - vm.currentContribution;
-      var changeInWei = ethereum.web3.toWei(deltaContribution, 'ether');
-      console.log(changeInWei);
+      var desiredContributionInWei = ethereum.web3.toWei(vm.desiredContribution, 'ether');
+
+      var valueToSend = 0;
       if(deltaContribution > 0) {
-        contract.addToContribution(null, { value: changeInWei, from: vm.selectedAccount, to: contractAddress }, onContributionSet);
-      } else if(deltaContribution < 0){
-        contract.removeFromContribution(-changeInWei, { from: vm.selectedAccount, to: contractAddress }, onContributionSet);
+        valueToSend = ethereum.web3.toWei(deltaContribution, 'ether');
       }
+
+      contract.setContribution(desiredContributionInWei, { value: valueToSend, from: vm.selectedAccount, to: contractAddress }, onContributionSet);
 
       function onContributionSet(error, result) {
         if(error) {
