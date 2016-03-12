@@ -13,7 +13,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
   </head>
 
-  <body ng-app="ether-spinner">
+  <body ng-app="ether-spinner" ng-cloak>
     <div class="container" style="height: 100%;">
       <div class="jumbotron">
         <h1>
@@ -42,39 +42,42 @@
             <div class="panel panel-default" ng-if="vm.isConnected()">
               <div class="panel-heading">
                 Your Contribution
-                <select class="form-control pull-right" style="height: auto; width: auto;" ng-model="vm.selectedAccount">
-                  <option ng-repeat="account in vm.accounts" value="{{ account }}">
-                    {{ account.toString() }}
+                <select class="form-control pull-right account-selector" style="height: auto; width: auto;" ng-model="vm.selectedAccount" ng-change="vm.onAccountChanged()">
+                  <option ng-repeat="account in vm.accounts | orderBy:account" value="{{ account }}">
+                    {{ account.toString() }} (<small>Ξ </small>{{ vm.getBalance(account).toString() | number:2}})
                   </option>
                 </select>
               </div>
               <div class="panel-body">
-                You currently have <strong>{{ vm.currentStakes }} eth</strong> in this wheel.
+                You currently have <strong style="font-size: 1.3em"><small>Ξ </small>{{ vm.currentContribution | number:2 }}</strong> in this wheel and <strong style="font-size: 1.3em"><small>Ξ </small>{{ vm.getBalance(vm.selectedAccount).toString() | number:2 }}</strong> in your account.
 
                 <div class="row">
                   <div class="col-xs-7">
                     <rzslider
-                      rz-slider-model="vm.desiredStakes"
-                      rz-slider-options="{ floor: 0, ceil: (vm.goal - vm.balance + vm.currentStakes).toFixed(2), step: vm.sliderStep, precision: 2, onChange: vm.onSliderChanged }"
+                      rz-slider-model="vm.desiredContribution"
+                      rz-slider-options="{ floor: 0, ceil: (vm.goal - vm.balance + vm.currentContribution).toFixed(2), step: vm.sliderStep, precision: 2, onChange: vm.onSliderChanged }"
                     >
                     </rzslider>
                   </div>
 
                   <div class="col-xs-5" style="position: relative;">
                     <button
-                      class="btn btn-success btn-set-stakes"
-                      ng-disabled="vm.desiredStakes == vm.currentStakes"
+                      class="btn btn-success btn-set-contribution"
+                      ng-disabled="vm.currentContribution == vm.desiredContribution"
+                      ng-click="vm.setContribution()"
                       >
-                        Set Contribution to {{ vm.desiredStakes | number:2}} Ξ
+                      <span ng-hide="vm.newBalance == vm.goal">
+                        Set Contribution to <small>Ξ </small>{{ vm.desiredContribution | number:2}}
+                      </span>
+
+                      <span ng-show="vm.newBalance == vm.goal">
+                        Complete the Wheel! (<small>Ξ </small>{{ vm.desiredContribution | number:2}})
+                      </span>
                     </button>
                   </div>
 
-                  <div class="text-danger" style="clear: both; text-align: center; padding-top: 10px; font-size: 0.9em;" ng-show="vm.newBalance == vm.goal">
-                    This will fill the wheel, causing a winner to be chosen for this round!<br>
-                  </div>
-
                   <p class="subtext pull-right" style="margin-top: 10px; margin-right: 15px; margin-bottom: 0; text-align: right;">
-                    This would give you a {{ vm.desiredStakes / vm.goal * 100 | number:0 }}% chance of winning all {{ vm.goal }} Ξ*.
+                    This would give you a {{ vm.desiredContribution / vm.goal * 100 | number:0 }}% chance of winning all <small>Ξ </small>{{ vm.goal }}*.
                   </p>
                 </div>
               </div>
@@ -91,12 +94,12 @@
                   <tbody>
                     <tr ng-repeat="i in [1,2,3,4,5,6,7,8,9,10]">
                       <td>
-                        {{ vm.selectedAccount }}
+                        You <small>({{ vm.selectedAccount }})</small>
                         <span class="pull-right">
                           a few moments ago
                         </span>
                         <br>
-                        <span class="subtext">contributed {{ i }}.0 Ξ</span>
+                        <span class="subtext">contributed <small>Ξ </small>{{ i }}.0</span>
                       </td>
                     </tr>
                   </tbody>
@@ -127,9 +130,7 @@
           </div>
         </div>
         <span class="subtext pull-right" style="margin-right: 30px">*1% of the total winnings are credited to the developer.</span>
-
       </div>
-
     </div>
 
     <div class="info-boxes">
@@ -164,9 +165,9 @@
         </div>
 
         <div class="panel panel-default info-box">
-          <header><i class="fa fa-bitcoin"></i>Do you profit from this?</header>
+          <header><i class="fa fa-bitcoin"></i>Do you benefit from this?</header>
           <p>
-            The Ether Wheel smart-contract does send me (the developer) 1% of the pool at the time that a winner is declared, in order to compensate for hosting/domain name fees, my development time, and a cup of coffee or two. <i class="fa fa-smile-o"></i> Other than that, etherwheel.io only benefits its users.
+            The Ether Wheel smart-contract does send me (the developer) 1% of the pool at the time that a winner is declared, in order to compensate me for hosting/domain name fees and my development time. <i class="fa fa-smile-o"></i> Other than that, Ether Wheel only benefits its users. Keep in mind that ether is <em>not</em> a currency and should not be treated as such. The Ethereum Project defines ether as "an internal token that is used to pay for computation time."
           </p>
         </div>
 

@@ -13,7 +13,7 @@ body {
 
 .subtext {
   font-size: 0.9em;
-  opacity: 0.4;
+  opacity: 0.55;
 }
 
 strong {
@@ -37,13 +37,23 @@ strong {
   font-weight: bolder;
 }
 
-.btn-set-stakes {
+.btn-set-contribution {
    width: 100%;
    max-width: 300px;
    height: 3em;
    transform: translate(0, 25%);
    display: table;
    margin: auto;
+}
+
+.panel-heading {
+  min-height: 43px;
+}
+
+.account-selector {
+  max-height: 30px;
+  vertical-align: middle;
+  margin-top: -4px;
 }
 
 .recent-winners-box {
@@ -93,7 +103,7 @@ strong {
     }
 
     .percentage {
-      opacity: 0.3;
+      opacity: 0.4;
       font-size: 0.6em;
       line-height: 0.25em;
     }
@@ -117,6 +127,8 @@ rzslider {
 
     &:not(.rz-limit) {
       font-weight: bold;
+      font-size: 1.2em;
+      bottom: 11px;
     }
   }
 }
@@ -177,4 +189,5 @@ footer {
   color: $light-color;
   min-height: 150px;
   padding: 20px;
+  width: 100%;
 }

@@ -19,7 +19,8 @@ var config = {
     sass: ['app/**/*.scss'],
     css: ['app/**/*.css',
           "bower_components/angular-chart.js/dist/angular-chart.css",
-          "bower_components/angularjs-slider/dist/rzslider.css"]
+          "bower_components/angularjs-slider/dist/rzslider.css",
+          "bower_components/sweetalert/dist/sweetalert.css"]
   },
   isProduction: gulpUtil.env.production
 };

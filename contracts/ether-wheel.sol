@@ -39,9 +39,13 @@ contract EtherWheel {
     }
 
     function addToContribution() {
+        addValueToContribution(msg.value);
+    }
+
+    function addValueToContribution(uint value) internal {
         // First, make sure this is a valid transaction.
         // It needs to be a valid increment and must not overshoot the goal.
-        if(msg.value == 0 || msg.value % increment != 0) throw;
+        if(value == 0 || value % increment != 0) throw;
         if(this.balance > goal) throw;
 
         if(contributions[msg.sender] == 0) {
@@ -49,7 +53,7 @@ contract EtherWheel {
             contributors.push(msg.sender);
         }
 
-        contributions[msg.sender] += msg.value;
+        contributions[msg.sender] += value;
         ChangedContribution(msg.sender);
 
         if(this.balance == goal) {
@@ -71,7 +75,7 @@ contract EtherWheel {
 
     /* Refunds are allowed at any time before a winner is chosen. */
     function removeFromContribution(uint amount) {
-        if(amount == 0 || msg.value > 0 || amount > contributions[msg.sender]) throw;
+        if(amount == 0 || amount % increment != 0 || msg.value > 0 || amount > contributions[msg.sender]) throw;
 
         msg.sender.send(amount);
         contributions[msg.sender] -= amount;
@@ -94,6 +98,29 @@ contract EtherWheel {
         ChangedContribution(msg.sender);
     }
 
+    /* A safer way to directly set a contribution. This way, a user can directly set
+    their contribution to a specific value, without accidentally adding or removing
+    more than once. */
+    function setContribution(uint amount) {
+        if(amount % increment != 0 || amount == contributions[msg.sender]) throw;
+
+        if(amount > contributions[msg.sender]) {
+            // The user is adding value to their contribution.
+            var refund = msg.value - (amount - contributions[msg.sender]);
+            if(refund > 0) {
+                msg.sender.send(refund);
+            } else if(refund < 0) {
+                throw;
+            }
+
+            addValueToContribution(amount - contributions[msg.sender]);
+        } else {
+            // The user is removing value from their contribution.
+            if(msg.value > 0) msg.sender.send(msg.value);
+            removeFromContribution(contributions[msg.sender] - amount);
+        }
+    }
+
     function selectWinner() internal returns (address winner) {
         /* Note that the block hash of the last block is used to determine
         a pseudo-random winner. Since this could possibly be manipulated
@@ -101,7 +128,7 @@ contract EtherWheel {
         There is no incentive to cheat a wheel with less than 5 ether, since
         that would result in a net loss for the cheating miner. */
 
-        uint semirandom = uint(block.blockhash(block.number - 1)) % this.balance;
+        uint semirandom = uint(block.blockhash(block.number - 1)) % contributors.length;
         for(uint i = 0; i < contributors.length; ++i) {
             if(semirandom < contributions[contributors[i]]) return contributors[i];
             semirandom -= contributions[contributors[i]];

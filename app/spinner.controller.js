@@ -4,16 +4,19 @@
   angular.module('ether-spinner').controller('SpinnerCtrl', SpinnerCtrl);
 
   /*@ngInject*/
-  function SpinnerCtrl($route, $scope, ethereum) {
+  function SpinnerCtrl($route, $scope, SweetAlert, ethereum) {
     var vm = this;
     vm.isConnected = ethereum.isConnected;
+    vm.setContribution = setContribution;
+    vm.onAccountChanged = onAccountChanged;
+    vm.getBalance = getBalance;
 
     var emptyBarColour = '#dce6e9';
-    var contractAddress = '0xaCD9e1e68622285Cc3d339D04b76BA7acEE6FC1C';
+    var contractAddress = '0x79edE3A98b042863384dE25788504532362d52D6';
     var contract = null;
 
     var chart;
-    var stakeholdersData;
+    var contributorsData;
     var emptyDataSlot = {
       value: 5.0,
       color: emptyBarColour,
@@ -28,7 +31,7 @@
       createChart();
       if(!ethereum.isConnected()) { return; }
 
-      var abi = [{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"stakes","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"stakeholders","outputs":[{"name":"","type":"address"}],"type":"function"},{"constant":true,"inputs":[],"name":"goal","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[],"name":"refundStake","outputs":[],"type":"function"},{"constant":false,"inputs":[],"name":"destroy","outputs":[],"type":"function"},{"constant":true,"inputs":[],"name":"increment","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"numStakeholders","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[{"name":"rejectPartialBets","type":"bool"}],"name":"buyStake","outputs":[],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"recentWins","outputs":[{"name":"winner","type":"address"},{"name":"timestamp","type":"uint256"},{"name":"stake","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"host","outputs":[{"name":"","type":"address"}],"type":"function"},{"inputs":[{"name":"_goalInFinney","type":"uint256"},{"name":"_incrementInFinney","type":"uint256"},{"name":"_recentWinsCount","type":"uint8"}],"type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"winner","type":"address"},{"indexed":false,"name":"timestamp","type":"uint256"},{"indexed":false,"name":"stake","type":"uint256"}],"name":"Won","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"stakeholder","type":"address"}],"name":"ChangedStake","type":"event"}];
+      var abi = [{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"contributors","outputs":[{"name":"","type":"address"}],"type":"function"},{"constant":true,"inputs":[],"name":"goal","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"contributions","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[{"name":"newHost","type":"address"}],"name":"changeHost","outputs":[],"type":"function"},{"constant":false,"inputs":[],"name":"destroy","outputs":[],"type":"function"},{"constant":false,"inputs":[{"name":"amount","type":"uint256"}],"name":"setContribution","outputs":[],"type":"function"},{"constant":true,"inputs":[],"name":"numWinners","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"numContributors","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[],"name":"addToContribution","outputs":[],"type":"function"},{"constant":true,"inputs":[],"name":"increment","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[{"name":"amount","type":"uint256"}],"name":"removeFromContribution","outputs":[],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"recentWins","outputs":[{"name":"winner","type":"address"},{"name":"timestamp","type":"uint256"},{"name":"contribution","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"host","outputs":[{"name":"","type":"address"}],"type":"function"},{"inputs":[{"name":"_goalInFinney","type":"uint256"},{"name":"_incrementInFinney","type":"uint256"},{"name":"_recentWinsCount","type":"uint8"}],"type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"winner","type":"address"},{"indexed":false,"name":"timestamp","type":"uint256"},{"indexed":false,"name":"contribution","type":"uint256"}],"name":"Won","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"contributor","type":"address"}],"name":"ChangedContribution","type":"event"}];
       var contractBlueprint = ethereum.web3.eth.contract(abi);
       contract = contractBlueprint.at(contractAddress);
 
@@ -43,19 +46,57 @@
         vm.selectedAccount = ethereum.web3.eth.coinbase;
       }
 
-      initializeStakeholdersData();
-      updateStakes();
-      vm.desiredStakes = vm.currentStakes;
+      initializeContributorsData();
+      updateContributions();
+      vm.desiredContribution = vm.currentContribution;
 
       updateBalance();
       updateNewBalance();
       updateRecentResults();
 
-      var onStakeChangedEvent = contract.ChangedStake();
-      onStakeChangedEvent.watch(onStakeChanged);
+      var onContributionChangedEvent = contract.ChangedContribution();
+      onContributionChangedEvent.watch(onContributionChanged);
 
       var onWonEvent = contract.Won();
       onWonEvent.watch(onWon);
+    }
+
+    function setContribution() {
+      var deltaContribution = vm.desiredContribution - vm.currentContribution;
+      var changeInWei = ethereum.web3.toWei(deltaContribution, 'ether');
+      console.log(changeInWei);
+      if(deltaContribution > 0) {
+        contract.addToContribution(null, { value: changeInWei, from: vm.selectedAccount, to: contractAddress }, onContributionSet);
+      } else if(deltaContribution < 0){
+        contract.removeFromContribution(-changeInWei, { from: vm.selectedAccount, to: contractAddress }, onContributionSet);
+      }
+
+      function onContributionSet(error, result) {
+        if(error) {
+          var errorMessage = error;
+          if(errorMessage.toString().indexOf('unlock signer account') >= 0) {
+              errorMessage += "<br><br>Make sure you're accessing this page through the <a href=\"https://github.com/ethereum/mist/releases/tag/0.3.6\">early developer release</a> of Mist, the official Ethereum browser.";
+          }
+
+          SweetAlert.swal({
+            title: "Error Setting Contribution",
+            text: errorMessage,
+            type: "error",
+            html: true
+          });
+        } else {
+          SweetAlert.swal({
+            title: "Success!",
+            text: "Your request has been successfully sent to the Ethereum network for processing. You'll see your account balance updated soon.<br><br><strong>This may take a minute or two</strong>.",
+            type: "success",
+            html: true
+          })
+
+          vm.desiredContribution = vm.currentContribution;
+          chart.segments[contributorsData[vm.selectedAccount].index].value = vm.currentContribution;
+          updateNewBalance();
+        }
+      }
     }
 
     function createChart() {
@@ -92,37 +133,49 @@
     }
 
     function updateNewBalance() {
-      var deltaStakes = (vm.desiredStakes - vm.currentStakes);
-      vm.newBalance = vm.balance + deltaStakes;
+      var deltaContribution = (vm.desiredContribution - vm.currentContribution);
+      vm.newBalance = vm.balance + deltaContribution;
       chart.segments[chart.segments.length - 1].value = (vm.goal - vm.newBalance);
       chart.update();
     }
 
-    function updateStakes() {
+    function updateContributions() {
       if(!ethereum.isConnected()) { return; }
 
       updateBalance();
-      vm.currentStakes = parseFloat(ethereum.web3.fromWei(contract.stakes(vm.selectedAccount), 'ether').toString());
-      vm.desiredStakes = Math.min(vm.desiredStakes, vm.goal - vm.balance + vm.currentStakes);
+      vm.currentContribution = parseFloat(ethereum.web3.fromWei(contract.contributions(vm.selectedAccount), 'ether').toString());
+      vm.desiredContribution = Math.min(vm.desiredContribution, vm.goal - vm.balance + vm.currentContribution);
       updateNewBalance();
     }
 
-    function initializeStakeholdersData() {
+    function initializeContributorsData() {
       if(!ethereum.isConnected()) { return; }
 
       chart.removeData();
-      stakeholdersData = {};
-      var numStakeholders = contract.numStakeholders();
-      for(var i = 0; i < numStakeholders; ++i) {
-        var stakeholderAddress = contract.stakeholders(i).toString();
-        stakeholdersData[stakeholderAddress] = {
-          label: stakeholderAddress,
-          value: ethereum.web3.fromWei(contract.stakes(stakeholderAddress), 'ether'),
-          color: (stakeholderAddress === vm.selectedAccount) ? '#5cb85c' : '#3D3E3F',
+      contributorsData = {};
+      var numContributors = contract.numContributors();
+      for(var i = 0; i < numContributors; ++i) {
+        var contributorAddress = contract.contributors(i).toString();
+        contributorsData[contributorAddress] = {
+          label: contributorAddress,
+          value: ethereum.web3.fromWei(contract.contributions(contributorAddress), 'ether'),
+          color: (contributorAddress === vm.selectedAccount) ? '#5cb85c' : '#3D3E3F',
           index: i
         };
 
-        chart.addData(stakeholdersData[stakeholderAddress]);
+        chart.addData(contributorsData[contributorAddress]);
+      }
+
+      var currentAccount = vm.selectedAccount.toString();
+      if(!(currentAccount in contributorsData)) {
+        var index = Object.keys(contributorsData).length;
+        contributorsData[currentAccount] = {
+          label: currentAccount,
+          value: 0,
+          color: '#5cb85c',
+          index: index
+        };
+        chart.addData(contributorsData[currentAccount], index);
       }
 
       chart.addData(emptyDataSlot);
@@ -133,48 +186,68 @@
       if(!ethereum.isConnected()) { return; }
     }
 
-    function onStakeChanged(error, result) {
-      // TODO: Check if desired contribution needs to be reduced
+    function onAccountChanged() {
+      chart.destroy();
+      createChart();
+      initializeContributorsData();
+      updateContributions();
+      vm.desiredContribution = vm.currentContribution;
 
+      updateBalance();
+      updateNewBalance();
+      updateRecentResults();
+    }
+
+    function onContributionChanged(error, result) {
       if(!error) {
-        var stakeholderAddress = result.args.stakeholder.toString();
-        var value = ethereum.web3.fromWei(contract.stakes(stakeholderAddress), 'ether');
-        if(stakeholderAddress in stakeholdersData) {
-          chart.segments[stakeholdersData[stakeholderAddress].index].value = value;
+        var contributorAddress = result.args.contributor.toString();
+        var value = ethereum.web3.fromWei(contract.contributions(contributorAddress), 'ether');
+
+        if(result.args.contributor == vm.selectedAccount) {
+          updateContributions();
+          vm.desiredContribution = vm.currentContribution;
+        }
+
+        if(contributorAddress in contributorsData) {
+          chart.segments[contributorsData[contributorAddress].index].value = value;
         } else {
-          var index = Object.keys(stakeholdersData).length;
-          stakeholdersData[stakeholderAddress] = {
-            label: stakeholderAddress,
+          var index = Object.keys(contributorsData).length;
+          contributorsData[contributorAddress] = {
+            label: contributorAddress,
             value: value,
-            color: (stakeholderAddress === vm.selectedAccount) ? '#5cb85c' : '#3D3E3F',
+            color: (contributorAddress === vm.selectedAccount) ? '#5cb85c' : '#3D3E3F',
             index: index
           };
-          chart.addData(stakeholdersData[stakeholderAddress], index);
-          console.log(index);
+          chart.addData(contributorsData[contributorAddress], index);
         }
 
         chart.update();
+      } else {
+        console.log(error);
       }
 
       updateBalance();
-      updateStakes();
+      updateContributions();
+      updateNewBalance();
       $scope.$apply();
     }
 
     function onWon(error, result) {
       updateBalance();
-      updateStakes();
+      updateContributions();
       updateRecentResults();
       $scope.$apply();
     }
 
     function onSliderChanged(sliderId, modelValue) {
-      chart.segments[stakeholdersData[vm.selectedAccount.toString()].index].value = modelValue;
+      var currentAccount = vm.selectedAccount.toString();
+      chart.segments[contributorsData[currentAccount].index].value = modelValue;
       updateNewBalance();
     }
 
-    function reloadPage() {
-      $route.reload();
+    function getBalance(account) {
+      if(!ethereum.isConnected()) { return; }
+      return ethereum.web3.fromWei(ethereum.web3.eth.getBalance(account), 'ether');
     }
   }
 })();
