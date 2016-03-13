@@ -10,9 +10,11 @@
     vm.setContribution = setContribution;
     vm.onAccountChanged = onAccountChanged;
     vm.getBalance = getBalance;
+    vm.fromWei = ethereum.web3.fromWei;
+    vm.moment = moment;
 
     var emptyBarColour = '#dce6e9';
-    var contractAddress = '0x79edE3A98b042863384dE25788504532362d52D6';
+    var contractAddress = '0x53891ef3793d8534Ad42312BcC77dFAd51Bb5F1C';
     var contract = null;
 
     var chart;
@@ -62,15 +64,18 @@
     }
 
     function setContribution() {
-      var deltaContribution = vm.desiredContribution - vm.currentContribution;
+      var deltaContribution = ethereum.web3.toWei(vm.desiredContribution, 'ether') - ethereum.web3.toWei(vm.currentContribution, 'ether');
       var desiredContributionInWei = ethereum.web3.toWei(vm.desiredContribution, 'ether');
 
       var valueToSend = 0;
       if(deltaContribution > 0) {
-        valueToSend = ethereum.web3.toWei(deltaContribution, 'ether');
+        valueToSend = deltaContribution;
       }
 
-      contract.setContribution(desiredContributionInWei, { value: valueToSend, from: vm.selectedAccount, to: contractAddress }, onContributionSet);
+      var transaction = { value: valueToSend, from: vm.selectedAccount, to: contractAddress };
+      transaction.gas = ethereum.web3.eth.estimateGas(transaction) + 100000;
+      console.log(transaction.gas.toString());
+      contract.setContribution(desiredContributionInWei, transaction, onContributionSet);
 
       function onContributionSet(error, result) {
         if(error) {
@@ -185,6 +190,12 @@
 
     function updateRecentResults() {
       if(!ethereum.isConnected()) { return; }
+
+      vm.recentWins = [];
+      var numRecentWins = contract.numWinners();
+      for(var i = 0; i < numRecentWins; ++i) {
+        vm.recentWins.push(contract.recentWins(i));
+      }
     }
 
     function onAccountChanged() {
@@ -196,7 +207,6 @@
 
       updateBalance();
       updateNewBalance();
-      updateRecentResults();
     }
 
     function onContributionChanged(error, result) {
@@ -223,8 +233,6 @@
         }
 
         chart.update();
-      } else {
-        console.log(error);
       }
 
       updateBalance();
@@ -234,8 +242,13 @@
     }
 
     function onWon(error, result) {
-      updateBalance();
+      chart.destroy();
+      createChart();
+      initializeContributorsData();
       updateContributions();
+
+      updateBalance();
+      updateNewBalance();
       updateRecentResults();
       $scope.$apply();
     }

@@ -128,7 +128,7 @@ contract EtherWheel {
         There is no incentive to cheat a wheel with less than 5 ether, since
         that would result in a net loss for the cheating miner. */
 
-        uint semirandom = uint(block.blockhash(block.number - 1)) % contributors.length;
+        uint semirandom = uint(block.blockhash(block.number - 1)) % this.balance;
         for(uint i = 0; i < contributors.length; ++i) {
             if(semirandom < contributions[contributors[i]]) return contributors[i];
             semirandom -= contributions[contributors[i]];

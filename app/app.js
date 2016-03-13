@@ -4,7 +4,8 @@
   angular.module('ether-spinner', [
     'ngRoute',
     'rzModule',
-    'oitozero.ngSweetAlert'
+    'oitozero.ngSweetAlert',
+    'angularMoment'
   ]).
   config(['$routeProvider', function($routeProvider) {
     $routeProvider.otherwise({redirectTo: '/'});
