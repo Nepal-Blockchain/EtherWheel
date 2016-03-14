@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    angular.module('ether-spinner').service('ethereum', ethereum);
+    angular.module('ether-wheel').service('ethereum', ethereum);
 
     /* @ngInject */
     function ethereum() {

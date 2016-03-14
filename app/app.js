@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  angular.module('ether-spinner', [
+  angular.module('ether-wheel', [
     'ngRoute',
     'rzModule',
     'oitozero.ngSweetAlert',

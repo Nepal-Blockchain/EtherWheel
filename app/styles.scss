@@ -27,7 +27,7 @@ strong {
   &.active a {
       background-color: $dark-color;
 
-      &:hover {
+      &:hover, &:active, &:visited {
         background-color: $dark-color;
       }
   }
@@ -102,6 +102,8 @@ strong {
   #wheel {
     max-width: 100%;
   }
+
+  canvas{position:relative; z-index:1;}
 
   .wheel-text {
     font-size: 3em;
