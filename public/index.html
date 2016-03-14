@@ -35,7 +35,7 @@
       </div>
 
       <div ng-controller="WheelCtrl as vm" class="row">
-        <div class="wheel-area col-md-6" ng-show="::vm.isConnected">>
+        <div class="wheel-area col-md-6" ng-show="::vm.isConnected">
           <canvas id="wheel" height="260px"></canvas>
           <div class="wheel-text">
             <span class="current-ether">{{ vm.selectedWheel.getAdjustedBalance(vm.selectedAccount) | currency:"":2 }}</span>
