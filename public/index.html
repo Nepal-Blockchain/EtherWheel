@@ -82,7 +82,7 @@
                   <div class="col-xs-5" style="position: relative;">
                     <button
                       class="btn btn-success btn-set-contribution"
-                      ng-disabled="vm.getContribution(vm.selected) == vm.selectedWheel.desiredContribution"
+                      ng-disabled="vm.selectedWheel.getContribution(vm.selectedAccount) == vm.selectedWheel.desiredContribution"
                       ng-click="vm.setContribution()"
                       >
                       <span ng-hide="vm.selectedWheel.getAdjustedBalance(vm.selectedAccount) == vm.selectedWheel.goal">
